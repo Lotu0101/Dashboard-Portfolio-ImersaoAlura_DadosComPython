@@ -56,7 +56,7 @@ st.markdown("Explore os dados salariais na área de dados nos últimos anos. Uti
 st.markdown("---")
 
 # --- Métricas Principais (KPIs) ---
-st.subheader("Métricas gerais (Salário anual em USD)", anchor='metricas', help="Principais métricas salariais com base nos filtros aplicados.")
+st.subheader("Métricas gerais (Salário anual em USD)", anchor='metricas', help="Principais métricas salariais com base nos filtros aplicados. \n Delta indica variação percentual em relação à média total do dataset.")
 
 # Calcula as métricas principais usando funções do pandas
 # .mean() = média | .min() = mínimo | .max() = máximo | .mode()[0] = valor mais frequente
@@ -167,4 +167,5 @@ with col_graf4:
 
 # --- Tabela de Dados Detalhados ---
 st.subheader("Dados Detalhados")
+
 st.dataframe(df_filtrado)
