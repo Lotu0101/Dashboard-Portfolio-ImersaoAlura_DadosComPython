@@ -166,8 +166,109 @@ with col_graf4:
     else:
         st.warning("Nenhum dado para exibir no gráfico de países.")
 
+# --- Gráfico Personalizado ---
+st.subheader("Crie seu próprio gráfico", anchor='grafico-personalizado', help="Selecione as variáveis e o tipo de visualização desejada.")
+
+# Obtém colunas disponíveis para visualização
+# Exclui colunas que não fazem sentido como variáveis numéricas (ano, id, etc)
+colunas_numericas = df_filtrado.select_dtypes(include=['number']).columns.tolist()
+colunas_numericas = [col for col in colunas_numericas if col not in ['ano']]  # Remove 'ano' pois é melhor como categoria
+todas_colunas = df_filtrado.columns.tolist()
+
+if not df_filtrado.empty:
+    col_pers1, col_pers2, col_pers3 = st.columns(3)
+    
+    with col_pers1:
+        tipo_grafico_pers = st.selectbox(
+            "Tipo de gráfico",
+            ["Barras", "Dispersão", "Linha", "Histograma", "Box Plot"],
+            help="Escolha o tipo de visualização"
+        )
+    
+    with col_pers2:
+        eixo_x = st.selectbox(
+            "Eixo X",
+            todas_colunas,
+            help="Selecione a coluna para o eixo X"
+        )
+    
+    with col_pers3:
+        eixo_y = st.selectbox(
+            "Eixo Y",
+            colunas_numericas if colunas_numericas else todas_colunas,
+            help="Selecione a coluna numérica para o eixo Y"
+        )
+    
+    # Criar gráfico baseado nas seleções
+    try:
+        if tipo_grafico_pers == "Barras":
+            grafico_pers = px.bar(
+                df_filtrado.groupby(eixo_x)[eixo_y].mean().reset_index(),
+                x=eixo_x,
+                y=eixo_y,
+                title=f"Gráfico de Barras: {eixo_y} por {eixo_x}",
+                labels={eixo_x: eixo_x, eixo_y: eixo_y},
+                color=eixo_y,
+                color_continuous_scale='Reds'
+            )
+            grafico_pers.update_layout(coloraxis_showscale=False)
+        elif tipo_grafico_pers == "Dispersão":
+            grafico_pers = px.scatter(
+                df_filtrado,
+                x=eixo_x,
+                y=eixo_y,
+                title=f"Gráfico de Dispersão: {eixo_y} vs {eixo_x}",
+                labels={eixo_x: eixo_x, eixo_y: eixo_y},
+                color=eixo_y,
+                color_continuous_scale='Reds'
+            )
+            grafico_pers.update_layout(coloraxis_showscale=False)
+        elif tipo_grafico_pers == "Linha":
+            grafico_pers = px.line(
+                df_filtrado.groupby(eixo_x)[eixo_y].mean().reset_index(),
+                x=eixo_x,
+                y=eixo_y,
+                title=f"Gráfico de Linha: {eixo_y} por {eixo_x}",
+                labels={eixo_x: eixo_x, eixo_y: eixo_y}
+            )
+            grafico_pers.update_traces(line=dict(color='#C41E3A', width=3))
+        elif tipo_grafico_pers == "Histograma":
+            if eixo_y in colunas_numericas:
+                grafico_pers = px.histogram(
+                    df_filtrado,
+                    x=eixo_y,
+                    nbins=20,
+                    title=f"Histograma de {eixo_y}",
+                    labels={eixo_y: eixo_y}
+                )
+                grafico_pers.update_traces(marker_color='#C41E3A')
+            else:
+                st.error("Para Histograma, escolha uma coluna numérica no eixo Y")
+                grafico_pers = None
+        else:  # Box Plot
+            if eixo_y in colunas_numericas:
+                grafico_pers = px.box(
+                    df_filtrado,
+                    x=eixo_x,
+                    y=eixo_y,
+                    title=f"Box Plot: {eixo_y} por {eixo_x}",
+                    labels={eixo_x: eixo_x, eixo_y: eixo_y}
+                )
+                grafico_pers.update_traces(marker=dict(color='#C41E3A'))
+            else:
+                st.error("Para Box Plot, escolha uma coluna numérica no eixo Y")
+                grafico_pers = None
+        
+        if grafico_pers:
+            grafico_pers.update_layout(title_x=0.1)
+            st.plotly_chart(grafico_pers, use_container_width=True)
+    
+    except Exception as e:
+        st.error(f"Erro ao criar gráfico: {str(e)}")
+        st.info("Dica: Certifique-se de que as colunas selecionadas são compatíveis com o tipo de gráfico escolhido.")
+
+st.markdown("---")
+
 # --- Tabela de Dados Detalhados ---
 st.subheader("Dados Detalhados")
-
 st.dataframe(df_filtrado)
-
